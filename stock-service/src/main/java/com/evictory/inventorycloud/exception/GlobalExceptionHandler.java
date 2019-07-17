@@ -23,12 +23,12 @@ public class GlobalExceptionHandler {
     ResponseMessages responseMessages;
 
     @ExceptionHandler(JsonMappingException.class)
-    public ResponseEntity<ExceptionResponse> serviceExceptionHandler(JsonMappingException e){
-    	
-        exceptionResponse.setMessage("Invalide value format in json body");
-        exceptionResponse.setCode("Serialize code");
-        exceptionResponse.setData(e.toString());
-        return new ResponseEntity<>(exceptionResponse,HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<?> serviceExceptionHandler(JsonMappingException e){
+
+        responseValues.setStatus(responseMessages.getResponseFailed());
+        responseValues.setMessage("Invalid Json body passed");
+        responseValues.setCode("#1200003");
+        return new ResponseEntity<>(responseValues,HttpStatus.INTERNAL_SERVER_ERROR);
     }
     
     @ExceptionHandler(MessageBodyConstraintViolationException.class)
@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
 
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ExceptionResponse> serviceExceptionFromModel(MethodArgumentNotValidException ex){
+    public ResponseEntity<?> serviceExceptionFromModel(MethodArgumentNotValidException ex){
     	String message = "Please provide ";
 		
 		for (int i = 0; i < ex.getBindingResult().getAllErrors().size(); i++) {
@@ -52,11 +52,11 @@ public class GlobalExceptionHandler {
 				message = message +" & " + ex.getBindingResult().getAllErrors().get(i).getDefaultMessage() ;
 			}
 		}
-    	
-    	exceptionResponse.setMessage(message);
-        exceptionResponse.setCode("Serialize code");
-        exceptionResponse.setData(ex.toString());
-        return new ResponseEntity<>(exceptionResponse,HttpStatus.INTERNAL_SERVER_ERROR);
+
+        responseValues.setMessage(message);
+        responseValues.setStatus(responseMessages.getResponseFailed());
+        responseValues.setCode("#1200003");
+        return new ResponseEntity<>(responseValues,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }
