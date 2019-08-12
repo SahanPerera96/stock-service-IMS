@@ -6,6 +6,7 @@ drop table if exists StockDetails;
 drop table if exists TransactionDetails;
 drop table if exists TransactionLog;
 drop table if exists Batch;
+drop table if exists DocumentTable;
 
 create table Batch (
         id integer not null auto_increment,
@@ -17,6 +18,14 @@ create table Batch (
         unitePrice float not null,
         primary key (id)
     );
+
+create table DocumentTable (
+        id integer not null auto_increment,
+        filename varchar(255) not null,
+        content longblob NOT NULL,
+        primary key (id)
+    );
+
 
 create table CurrentStock (
         id integer not null auto_increment,

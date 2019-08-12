@@ -177,5 +177,16 @@ public class StockController {
 
 	}
 
+	@RequestMapping(value = "/uploadImage", method = RequestMethod.POST)
+	public ResponseEntity<?> uploadImage( @RequestBody ImageResponse string) {
+		return stockService.saveImage(string.getString());
+
+	}
+
+	@RequestMapping(value = "/uploadImage/{id}", method = RequestMethod.GET)
+	public ResponseEntity<?> uploadImageByID(@PathVariable Integer id ) {
+		return stockService.fetchImageById(id);
+
+	}
 
 }

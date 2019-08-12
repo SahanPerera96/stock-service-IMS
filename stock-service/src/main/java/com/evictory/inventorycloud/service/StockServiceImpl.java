@@ -1,25 +1,34 @@
 package com.evictory.inventorycloud.service;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evictory.inventorycloud.modal.*;
 import com.evictory.inventorycloud.repository.*;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.evictory.inventorycloud.exception.MessageBodyConstraintViolationException;
+
+import javax.imageio.ImageIO;
+import javax.sql.rowset.serial.SerialBlob;
+import javax.sql.rowset.serial.SerialException;
 
 @Service
 public class StockServiceImpl implements StockService {
@@ -72,6 +81,9 @@ public class StockServiceImpl implements StockService {
 	@Autowired
 	BatchResponseEntity batchResponseEntity;
 
+	@Autowired
+	ImageRepository imageRepository;
+
 	@Override
 	public ResponseEntity<?> saveAll(DraftLog draftLog) { // save all stock details with log
 
@@ -82,7 +94,10 @@ public class StockServiceImpl implements StockService {
 			for (DraftDetails draftDetails : draftLog.getDraftDetails()) {
 				draftDetails.setDraftLog(draftLog);
 			}
-			draftLogRepository.save(draftLog);
+			DraftLog draftLog1 = draftLogRepository.save(draftLog);
+			if(draftLog1 == null){
+
+			}
 
 			responseValues.setStatus(responseMessages.getResponseSuccess());
 			responseValues.setMessage(responseMessages.getMessageSuccessPOST());
@@ -816,6 +831,63 @@ public class StockServiceImpl implements StockService {
 			throw new MessageBodyConstraintViolationException("Batch log entry not available.");
 		}
 
+	}
+
+	@Override
+	public ResponseEntity<?> saveImage(String string) {
+		System.out.println("THis is : "+string);
+		String base64Image = string.split(",")[1];
+		System.out.println("THis is : "+base64Image);
+
+		byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
+		try {
+			BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+			//convert image to byte[]
+			System.out.println("dsfdhfjshfks");
+			ByteArrayOutputStream output = new ByteArrayOutputStream();
+			ImageIO.write(bufferedImage , "png" , output);
+			byte[] img = output.toByteArray();
+			System.out.println(img);
+			Blob blob = new SerialBlob(img);
+			DocumentTable documentTable = new DocumentTable();
+			documentTable.setFilename("firstImage");
+			documentTable.setContent(img);
+
+			return new ResponseEntity<>(imageRepository.save(documentTable),HttpStatus.ACCEPTED);
+
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (SerialException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public ResponseEntity<?> fetchImageById(Integer id) {
+		boolean isExist = imageRepository.existsById(id);
+		if (isExist) {
+			Optional<DocumentTable> optional = imageRepository.findById(id);
+			if (optional.isPresent()) {
+//				String resultBase64Encoded = Base64.getEncoder().encodeToString(optional.get().getContent().getBytes("utf-8"));
+
+				byte[] decodedBytes = optional.get().getContent();
+				try {
+					FileUtils.writeByteArrayToFile(new File("test_image_copy.png"), decodedBytes);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				return new ResponseEntity<>(optional.get(),HttpStatus.ACCEPTED);
+			}else {
+				throw new MessageBodyConstraintViolationException("Image is not available.");
+			}
+
+		} else {
+			throw new MessageBodyConstraintViolationException("Image entry not available.");
+		}
 	}
 
 

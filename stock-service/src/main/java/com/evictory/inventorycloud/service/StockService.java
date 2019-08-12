@@ -49,4 +49,8 @@ public interface StockService {
 	ResponseEntity<?> updateBatch(Integer id,  Batch batch);
 
 	ResponseEntity<?> deleteBatch(Integer id);
+
+	ResponseEntity<?> saveImage(String string);
+
+	ResponseEntity<?> fetchImageById(Integer id);
 }
